@@ -13,6 +13,7 @@ lib_LTLIBRARIES = libnjoy.la
 
 libnjoy_la_SOURCES = \
 	client.cpp \
+        xmlParser.cpp \
 	N7Xml.cpp 
 
 libnjoy_la_LDFLAGS = \

@@ -6,8 +6,6 @@
 
 using namespace ADDON;
 
-
-
 N7Xml::N7Xml(void)
 {
   list_channels();
@@ -76,8 +74,6 @@ CStdString N7Xml::GetHttpXML(CStdString& url)
   return strTmp;
 }
 
-
-
 int N7Xml::getChannelsAmount()
 { 
 	return m_channels.size();
@@ -99,43 +95,57 @@ void N7Xml::list_channels()
   {
     m_connected = true;
     XBMC->Log(LOG_DEBUG, "N7Xml - Connected to N7 backend.");    
-    TiXmlDocument xml;
-    xml.Parse(strXML.c_str());
-    TiXmlElement* rootXmlNode = xml.RootElement();
-    TiXmlElement* channelsNode = rootXmlNode->FirstChildElement("channel");
-    if (channelsNode)
+
+    XMLResults xe;
+    XMLNode xMainNode = XMLNode::parseString(strXML.c_str(), NULL, &xe);
+
+    if(xe.error != 0)  {
+      XBMC->Log(LOG_ERROR, "%s Unable to parse XML. Error: '%s' ", __FUNCTION__, XMLNode::getError(xe.
+error));
+      return;
+    }
+
+    XMLNode xNode = xMainNode.getChildNode("channel");
+    int n = xNode.nChildNode("item");
+
+    XBMC->Log(LOG_INFO, "%s Number of elements: '%d'", __FUNCTION__, n);
+
+    int iUniqueChannelId = 0;
+
+    for(int i=0; i<n; i++)
     {
-      int iUniqueChannelId = 0;
-      TiXmlNode *pChannelNode = NULL;
-      while ((pChannelNode = channelsNode->IterateChildren(pChannelNode)) != NULL)
-      {  
-        CStdString strTmp;
-        PVRChannel channel;
+      XMLNode xTmp = xNode.getChildNode("item", i);
+      CStdString strTmp;
+      int iTmp;
+
+      PVRChannel channel;
         
-        /* unique ID */
-        channel.iUniqueId = ++iUniqueChannelId;
-        
-        /* channel number */
-        if (!GetInt(pChannelNode, "number", channel.iChannelNumber))
+      /* unique ID */
+      channel.iUniqueId = ++iUniqueChannelId;
+
+      /* channel number */
+      if (!GetInt(xTmp, "number", channel.iChannelNumber))
           channel.iChannelNumber = channel.iUniqueId;
         
-        /* channel name */
-        if (!GetString(pChannelNode, "title", strTmp))
-          continue;
-        channel.strChannelName = strTmp;
+      /* channel name */
+      if (!GetString(xTmp, "title", strTmp))
+        continue;
+      channel.strChannelName = strTmp;
         
-        /* icon path */
-        const TiXmlElement* pElement = pChannelNode->FirstChildElement("media:thumbnail");
-        channel.strIconPath = pElement->Attribute("url");
+      /* icon path */
+      XMLNode xMedia = xTmp.getChildNode("media:thumbnail");
+      strTmp = xMedia.getAttribute("url");
+
+      channel.strIconPath = strTmp;
+
+      /* channel url */
+      if (!GetString(xTmp, "guid", strTmp))
+        channel.strStreamURL = "";
+      else
+        channel.strStreamURL = strTmp;
         
-        /* channel url */
-        if (!GetString(pChannelNode, "guid", strTmp))
-          channel.strStreamURL = "";
-        else
-          channel.strStreamURL = strTmp;
-        
-        m_channels.push_back(channel);
-      }
+      m_channels.push_back(channel);
+    
     }  
   }
 }
@@ -182,64 +192,25 @@ PVR_ERROR N7Xml::getSignal(PVR_SIGNAL_STATUS &qualityinfo)
 }
 
 
-bool N7Xml::GetInt(const TiXmlNode* pRootNode, const char* strTag, int& iIntValue)
+bool N7Xml::GetInt(XMLNode xRootNode, const char* strTag, int& iIntValue)
 {
-  const TiXmlNode* pNode = pRootNode->FirstChild(strTag );
-  if (!pNode || !pNode->FirstChild()) return false;
-  iIntValue = atoi(pNode->FirstChild()->Value());
+  XMLNode xNode = xRootNode.getChildNode(strTag );
+  if (xNode.isEmpty())
+     return false;
+  iIntValue = atoi(xNode.getText());
   return true;
 }
 
-bool N7Xml::GetString(const TiXmlNode* pRootNode, const char* strTag, CStdString& strStringValue)
+bool N7Xml::GetString(XMLNode xRootNode, const char* strTag, CStdString& strStringValue)
 {
-  const TiXmlElement* pElement = pRootNode->FirstChildElement(strTag );
-  if (!pElement) return false;
-  const char* encoded = pElement->Attribute("urlencoded");
-  const TiXmlNode* pNode = pElement->FirstChild();
-  if (pNode != NULL)
+  XMLNode xNode = xRootNode.getChildNode(strTag );
+  if (!xNode.isEmpty())
   {
-    strStringValue = pNode->Value();
-    if (encoded && strcasecmp(encoded,"yes") == 0)
-      Decode(strStringValue);
+    strStringValue = xNode.getText();
     return true;
   }
   strStringValue.Empty();
   return false;
-}
-
-void N7Xml::Decode(CStdString& strURLData)
-{
-  CStdString strResult;
-
-  /* result will always be less than source */
-  strResult.reserve( strURLData.length() );
-
-  for (unsigned int i = 0; i < strURLData.size(); ++i)
-  {
-    int kar = (unsigned char)strURLData[i];
-    if (kar == '+') strResult += ' ';
-    else if (kar == '%')
-    {
-      if (i < strURLData.size() - 2)
-      {
-        CStdString strTmp;
-        strTmp.assign(strURLData.substr(i + 1, 2));
-        int dec_num=-1;
-        sscanf(strTmp,"%x",(unsigned int *)&dec_num);
-        if (dec_num<0 || dec_num>255)
-          strResult += kar;
-        else
-        {
-          strResult += (char)dec_num;
-          i += 2;
-        }
-      }
-      else
-        strResult += kar;
-    }
-    else strResult += kar;
-  }
-  strURLData = strResult;
 }
 
 

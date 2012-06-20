@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../platform/util/StdString.h"
-#include "../tinyxml/tinyxml.h"
+#include "xmlParser.h"
 #include "client.h"
 #include <vector>
 
@@ -43,8 +43,7 @@ private:
   static int WebResponseCallback(void *contents, int iLength, int iSize, void *memPtr);
   std::vector<PVRChannel> m_channels;
   bool m_connected;
-  static bool GetInt(const TiXmlNode* pRootNode, const char* strTag, int& iIntValue);
-  static bool GetString(const TiXmlNode* pRootNode, const char* strTag, CStdString& strStringValue);
-  static void Decode(CStdString& strURLData);
+  static bool GetInt(XMLNode xRootNode, const char* strTag, int& iIntValue);
+  static bool GetString(XMLNode xRootNode, const char* strTag, CStdString& strStringValue);
 };
 
