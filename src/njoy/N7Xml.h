@@ -1,8 +1,14 @@
 #pragma once
 
+#include "../platform/util/StdString.h"
+#include "../tinyxml/tinyxml.h"
 #include "client.h"
 #include <vector>
-#include "utils/StdString.h"
+
+struct WebResponse {
+  char *response;
+  int iSize;
+};
 
 
 struct PVRChannel
@@ -33,8 +39,12 @@ public:
   PVR_ERROR getSignal(PVR_SIGNAL_STATUS &qualityinfo);
   void list_channels(void);
 private:
+  CStdString GetHttpXML(CStdString& url);
+  static int WebResponseCallback(void *contents, int iLength, int iSize, void *memPtr);
   std::vector<PVRChannel> m_channels;
   bool m_connected;
-
+  static bool GetInt(const TiXmlNode* pRootNode, const char* strTag, int& iIntValue);
+  static bool GetString(const TiXmlNode* pRootNode, const char* strTag, CStdString& strStringValue);
+  static void Decode(CStdString& strURLData);
 };
 
