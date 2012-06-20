@@ -54,7 +54,7 @@ CStdString N7Xml::GetHttpXML(CStdString& url)
   curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, &WebResponseCallback);
   curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&response);
-  curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "vuplus-pvraddon-agent/1.0");
+  curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "njoy-pvraddon-agent/1.0");
   curl_easy_perform(curl_handle);
 
   if (response.iSize == 0)

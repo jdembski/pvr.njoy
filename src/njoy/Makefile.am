@@ -5,7 +5,7 @@
 # how to reach the author.
 #
 
-LIBS   = -ldl
+LIBS   = -ldl -lcurl
 LIBDIR = ../../addons/pvr.njoy
 LIB    = ../../addons/pvr.njoy/XBMC_Njoy.pvr
 
