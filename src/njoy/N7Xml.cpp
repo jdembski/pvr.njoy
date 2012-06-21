@@ -100,12 +100,14 @@ void N7Xml::list_channels()
     XMLNode xMainNode = XMLNode::parseString(strXML.c_str(), NULL, &xe);
 
     if(xe.error != 0)  {
-      XBMC->Log(LOG_ERROR, "%s Unable to parse XML. Error: '%s' ", __FUNCTION__, XMLNode::getError(xe.
-error));
+      XBMC->Log(LOG_ERROR, "%s Unable to parse XML. Error: '%s' ", __FUNCTION__, XMLNode::getError(xe.error)); 
       return;
     }
 
-    XMLNode xNode = xMainNode.getChildNode("channel");
+      XBMC->Log(LOG_ERROR, "%s Unable to parse XML. Error: '%s' ", __FUNCTION__, XMLNode::getError(xe.error)); 
+
+    XMLNode xNode = xMainNode.getChildNode("rss");
+    xNode = xNode.getChildNode("channel");
     int n = xNode.nChildNode("item");
 
     XBMC->Log(LOG_INFO, "%s Number of elements: '%d'", __FUNCTION__, n);

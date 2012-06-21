@@ -82,7 +82,7 @@ ADDON_STATUS ADDON_Create(void* hdl, void* props)
   if (XBMC->GetSetting("n7host", buffer))
   {  
     g_strHostname = buffer;
-    XBMC->Log(LOG_ERROR, "n7host set to - %s", g_strHostname.c_str());
+    XBMC->Log(LOG_INFO, "n7host set to - %s", g_strHostname.c_str());
   }
   else
   {
